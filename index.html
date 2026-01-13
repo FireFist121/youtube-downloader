@@ -5,11 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Downloader</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .warning-box {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            color: #856404;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>🎥 YouTube Downloader</h1>
         <p class="subtitle">Download your favorite videos in MP4 or MP3 format</p>
+
+        <div class="warning-box">
+            <strong>⚠️ Note:</strong> Some videos may not be downloadable due to YouTube restrictions (age-restricted, private, or copyright-protected videos). If a download fails, try a different video.
+        </div>
 
         <div class="input-group">
             <label for="videoUrl">YouTube Video URL</label>
@@ -81,6 +96,9 @@
                 <li>Select your preferred quality and format</li>
                 <li>Click the Download button</li>
             </ol>
+            <p style="margin-top: 15px; color: #666; font-size: 13px;">
+                <strong>Tip:</strong> If a download fails, try public videos that are not age-restricted or copyright-protected.
+            </p>
         </div>
     </div>
 

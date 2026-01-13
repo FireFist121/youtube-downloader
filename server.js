@@ -32,15 +32,26 @@ app.get('/download', async (req, res) => {
     const outputTemplate = path.join(DOWNLOADS_DIR, `${timestamp}_%(title)s.%(ext)s`);
     
     try {
-        // Build yt-dlp command
+        // Build yt-dlp command with better options to avoid bot detection
         let command;
+        
+        const commonOptions = [
+            '--user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"',
+            '--add-header "Accept:text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"',
+            '--add-header "Accept-Language:en-us,en;q=0.5"',
+            '--add-header "Sec-Fetch-Mode:navigate"',
+            '--extractor-retries 3',
+            '--fragment-retries 3',
+            '--retry-sleep 5',
+            '--no-check-certificate'
+        ].join(' ');
         
         if (format === 'mp3') {
             // Download as MP3
-            command = `yt-dlp -x --audio-format mp3 --audio-quality 0 -o "${outputTemplate}" "${videoUrl}"`;
+            command = `yt-dlp ${commonOptions} -x --audio-format mp3 --audio-quality 0 -o "${outputTemplate}" "${videoUrl}"`;
         } else {
-            // Download as MP4
-            command = `yt-dlp -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" --merge-output-format mp4 -o "${outputTemplate}" "${videoUrl}"`;
+            // Download as MP4 with simpler format selection to avoid issues
+            command = `yt-dlp ${commonOptions} -f "best[ext=mp4]/best" -o "${outputTemplate}" "${videoUrl}"`;
         }
 
         console.log('Executing:', command);
@@ -49,7 +60,19 @@ app.get('/download', async (req, res) => {
             if (error) {
                 console.error('Download error:', error);
                 console.error('stderr:', stderr);
-                return res.status(500).send('Download failed: ' + error.message);
+                
+                // More helpful error messages
+                if (stderr.includes('Sign in to confirm')) {
+                    return res.status(403).send('YouTube is blocking this download. This video may be age-restricted or require sign-in. Try a different video or try again later.');
+                }
+                if (stderr.includes('Video unavailable')) {
+                    return res.status(404).send('Video is unavailable or has been removed.');
+                }
+                if (stderr.includes('Private video')) {
+                    return res.status(403).send('This is a private video and cannot be downloaded.');
+                }
+                
+                return res.status(500).send('Download failed. Please try a different video or try again later.');
             }
 
             // Find the downloaded file
@@ -99,7 +122,8 @@ app.get('/health', (req, res) => {
         res.json({ 
             status: 'ok', 
             ytdlpVersion: stdout.trim(),
-            message: 'Server ready to download videos!'
+            message: 'Server ready to download videos!',
+            note: 'Some videos may be blocked by YouTube. Age-restricted and private videos cannot be downloaded.'
         });
     });
 });

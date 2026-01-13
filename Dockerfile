@@ -1,14 +1,16 @@
 FROM node:18-slim
 
-# Install system dependencies
+# Install system dependencies including Node.js for yt-dlp
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     ffmpeg \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
 
-# Install yt-dlp
-RUN pip3 install --break-system-packages yt-dlp
+# Install yt-dlp with latest version
+RUN pip3 install --break-system-packages --upgrade yt-dlp
 
 # Set working directory
 WORKDIR /app
